@@ -18,8 +18,10 @@ def load_scraped_links():
     return {}
 
 def save_scraped_links(links):
+    # Convert sets to lists for JSON serialization
+    serializable_links = {domain: list(link_set) for domain, link_set in links.items()}
     with open(LINKS_FILE, 'w') as f:
-        json.dump(links, f)
+        json.dump(serializable_links, f)
 
 def get_domain(url):
     return urlparse(url).netloc
