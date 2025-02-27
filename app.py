@@ -77,7 +77,7 @@ def index():
             with open('output_links.txt', 'w') as f:
                 f.write("\n".join(unique_links))
             
-            return redirect(url_for('result', count=len(unique_links), url=url)
+            return redirect(url_for('result', count=len(unique_links), url=url))
         except Exception as e:
             return render_template('index.html', error=f'Error: {str(e)}')
     
