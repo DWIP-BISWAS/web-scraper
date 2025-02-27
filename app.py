@@ -69,7 +69,7 @@ def crawl_website(start_url, max_links):
 def index():
     if request.method == 'POST':
         url = request.form.get('url', '').strip()
-        max_links = int(request.form.get('max_links', 100000))
+        max_links = int(request.form.get('max_links', 10000))
         
         if not url:
             return render_template('index.html', error='Please enter a URL')
