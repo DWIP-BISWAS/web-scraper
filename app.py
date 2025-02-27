@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import time
 import json
+from collections import deque
 
 app = Flask(__name__)
 
@@ -18,7 +19,6 @@ def load_scraped_links():
     return {}
 
 def save_scraped_links(links):
-    # Convert sets to lists for JSON serialization
     serializable_links = {domain: list(link_set) for domain, link_set in links.items()}
     with open(LINKS_FILE, 'w') as f:
         json.dump(serializable_links, f)
@@ -26,35 +26,50 @@ def save_scraped_links(links):
 def get_domain(url):
     return urlparse(url).netloc
 
-def scrape_links(url, max_links):
+def crawl_website(start_url, max_links):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
-    time.sleep(2)  # 2-second delay
     
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-    except Exception as e:
-        raise Exception(f"Failed to fetch URL: {str(e)}")
-
-    soup = BeautifulSoup(response.text, 'html.parser')
-    links = set()
+    domain = get_domain(start_url)
+    visited = set()
+    queue = deque([start_url])
+    all_links = set()
     
-    for a_tag in soup.find_all('a', href=True):
-        if len(links) >= max_links:
-            break
-        href = a_tag['href']
-        absolute_url = urljoin(url, href)
-        links.add(absolute_url)
-    
-    return sorted(links)
+    while queue and len(all_links) < max_links:
+        url = queue.popleft()
+        
+        if url in visited:
+            continue
+            
+        try:
+            time.sleep(2)  # Respectful delay
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+        except:
+            continue
+            
+        soup = BeautifulSoup(response.text, 'html.parser')
+        visited.add(url)
+        
+        for a_tag in soup.find_all('a', href=True):
+            if len(all_links) >= max_links:
+                break
+            href = a_tag['href']
+            absolute_url = urljoin(url, href)
+            
+            # Only follow links from the same domain
+            if get_domain(absolute_url) == domain and absolute_url not in all_links:
+                all_links.add(absolute_url)
+                queue.append(absolute_url)
+                
+    return sorted(all_links)[:max_links]
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         url = request.form.get('url', '').strip()
-        max_links = int(request.form.get('max_links', 10))
+        max_links = int(request.form.get('max_links', 100))
         
         if not url:
             return render_template('index.html', error='Please enter a URL')
@@ -68,14 +83,15 @@ def index():
         existing_links = set(scraped_links.get(domain, []))
         
         try:
-            new_links = scrape_links(url, max_links)
+            # Crawl the entire website
+            new_links = crawl_website(url, max_links)
             unique_links = list(set(new_links) - existing_links)
             
             # Save new links
             scraped_links[domain] = existing_links.union(unique_links)
             save_scraped_links(scraped_links)
             
-            # Save new links to a text file for download
+            # Save to output file
             with open('output_links.txt', 'w') as f:
                 f.write("\n".join(unique_links))
             
