@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+.bg-blue-500 {
+    background-color: #3b82f6;
+}
+
+.hover\:bg-blue-600:hover {
+    background-color: #2563eb;
+}
+
+.bg-gray-500 {
+    background-color: #6b7280;
+}
+
+.hover\:bg-gray-600:hover {
+    background-color: #4b5563;
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
