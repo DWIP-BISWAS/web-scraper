@@ -43,7 +43,7 @@ def crawl_website(start_url, max_links):
             continue
             
         try:
-            time.sleep(1.5)  # Respectful delay
+            time.sleep(1.5)  # 1.5-second delay
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
         except:
@@ -69,7 +69,7 @@ def crawl_website(start_url, max_links):
 def index():
     if request.method == 'POST':
         url = request.form.get('url', '').strip()
-        max_links = int(request.form.get('max_links', 10000))
+        max_links = int(request.form.get('max_links', 100000))  # Max 100,000 links
         
         if not url:
             return render_template('index.html', error='Please enter a URL')
