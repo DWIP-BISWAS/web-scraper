@@ -43,7 +43,7 @@ def crawl_website(start_url, max_links):
             continue
             
         try:
-            time.sleep(1.5)  # 1.5-second delay
+            time.sleep(0)  # 1.5-second delay
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
         except:
